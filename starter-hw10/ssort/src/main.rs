@@ -223,7 +223,7 @@ fn worker(tid: usize, inp_path: String, out_path: String, pivots: Vec<f32>,
     let mut cur = Cursor::new(vec![]);
 
     for xx in &data {
-        let tmp = xx.to_ne_bytes();
+        let tmp = xx.to_bits().to_ne_bytes();
         cur.write_all(&tmp).unwrap();
     }
 
