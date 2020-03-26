@@ -1,0 +1,79 @@
+
+Local Machine : ( Specifications )
+
+OS : NAME="Ubuntu" , VERSION="18.04.2 LTS (Bionic Beaver)"
+
+Processor Model :
+ 
+Number of processors      : 4
+Model name                : Intel(R) Core(TM) i5-7200U CPU @ 2.50GHz
+Cpu cores                 : 2
+Number of processor-cores : 8
+RAM                       : 7GB ~ 8GB
+
+CCIS server : ( Specifications )
+
+OS : NAME="CentOS Linux" , VERSION="7 (Core)"
+
+Processor Model : 
+
+Number of processors       : 48
+Model name                 : Intel(R) Xeon(R) Gold 5118 CPU @ 2.30GHz
+cpu cores                  : 12
+Number of processors cores : 576
+RAM                        : 187GB ~ 192GB
+
+____________________ ______________________________________________________________
+|                   |                   |                        |                |
+| Test case         |  Results ( real ) | Parallel Speedup       | Ideal Speedup  |
+|___________________|___________________|________________________|________________|  
+|                   |                   |                        |                |
+| Local 1 Thread    | 23.10             |       1                |       1        |
+|___________________|___________________|________________________|________________|
+|                   |                   |                        |                |
+| Local 4 Thread    | 11.88             |   23.10 / 11.88 = 1.94 |       4        |
+|___________________|___________________|________________________|________________|
+|                   |                   |                        |                |
+| Local 8 Thread    | 8.86              |   23.10 / 8.86  = 2.60 |       8        |
+|___________________|___________________|________________________|________________|
+|                   |                   |                        |                |
+| CCIS 1 Thread     | 16.79             |   1                    |       1        |
+|___________________|___________________|________________________|________________|
+|                   |                   |                        |                |
+| CCIS 4 Threads    | 8.41              |   16.79 / 8.41  = 1.99 |       4        |
+|___________________|___________________|________________________|________________|
+|                   |                   |                        |                |
+| CCIS 8 Threads    | 6.15              |   16.79 / 6.15  = 2.73 |       8        |
+|___________________|___________________|________________________|________________|
+
+
+-- Analysis -- 
+
+As we can see from above table that ideal speedup has a very large deviation from that of
+a parallel speedup . The biggest reason would be that ideal speedup doesnt consider time 
+taken to create a thread or a process and it assumes that every process or thread has an 
+equal contribution . 
+With the sample sort algorithm , since the samples are chosen randomly and then sorted 
+thus we can never guarantee that every process will be devoted same work to be done . It can 
+happen that one amongst the process got 80% of samples which could ruin the parallelism 
+of the algorithm thereby approximating it to be sequential . 
+Slightly out of topic , but if the processes face a contention of resource , then it would 
+have to pull in the OS for mediation . This can lead to context switch or any other mechanism
+for resolving the deadlocks thereby again increasing the overall time taken destroying the 
+parallelism of the program . 
+
+
+-- Graphs --
+
+CCIS machine has a better performance than that of my local machine for it being a gigantic
+server with a good speed of working and a linear descent as compared to local machine since
+there is a shortage of cores for which increasing number of processes would eventually lead to
+contention of resources on local machine thereby leading consuming some "real" time . 
+
+As per the graphs , with increase of processes , time taken for them shows a linear decline
+while the threads performance become almost constant with a gentle decline . As per my views
+it should be context switches in the threads ( when number of threads increases , with below 
+HW resources being constant ) , it can lead to contention of resources thereby leading to 
+multiple context switches which take a lot of time thereby contributing being an additive
+time consuming factor . I have discussed it further in Threads vs Processes section below . 
+

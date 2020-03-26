@@ -23,13 +23,12 @@ fn main() {
     // Calculate pivots
     let mut inpf = File::open(inp_path).unwrap();
     let pivots = find_pivots(&mut inpf, threads);
-    let mut size = read_size(&mut inpf);
-    let mut num_floats = read_num_floats(&mut inpf);
+    let size = read_size(&mut inpf);
+    let num_floats = read_num_floats(&mut inpf);
 
     // Create output file
     {
         let mut outf = File::create(out_path).unwrap();
-        let tmp = size.to_ne_bytes();
         let tmp_floats = num_floats.to_ne_bytes();
         outf.write_all(&tmp_floats).unwrap();
         outf.set_len(size).unwrap();
@@ -114,7 +113,7 @@ fn sample(file: &mut File, count: usize, size: u64) -> Vec<f32> {
       let value_rnd_index = read_item(file,random_index); 
       ys.push(value_rnd_index);
       size_iterator = size_iterator + factor_range;
-      if(size_iterator == upper_bound)
+      if size_iterator == upper_bound 
       {
         done = true;    
       }
@@ -132,7 +131,7 @@ fn find_pivots(file: &mut File, threads: usize) -> Vec<f32> {
 
     // For threads = 1 , the pivot should be 0.0 as a lower limit
     // so that it can be handled later in worker code
-    if(count_samples == 0)
+    if count_samples == 0
     {
       // do nothing
     }
@@ -157,7 +156,7 @@ fn find_pivots(file: &mut File, threads: usize) -> Vec<f32> {
         let median = sum / 3.0;
         pivots.push(median);
         samples_iterator = samples_iterator + 3;
-        if(samples_iterator == upper_bound)
+        if samples_iterator == upper_bound 
         {
           done = true;
         }
@@ -172,12 +171,12 @@ fn worker(tid: usize, inp_path: String, out_path: String, pivots: Vec<f32>,
 
     // Open input as local fh
     let mut inpf = File::open(inp_path).unwrap();
-    let mut last_index = pivots.len() - 1;
+    let last_index = pivots.len() - 1;
 
-    let mut lower_limit = pivots[tid];
+    let lower_limit = pivots[tid];
     let mut upper_limit = 1000000.00;
 
-    if(tid < last_index)
+    if tid < last_index
     {
       upper_limit = pivots[tid+1];    
     }
@@ -185,14 +184,14 @@ fn worker(tid: usize, inp_path: String, out_path: String, pivots: Vec<f32>,
     // Scan to collect local data
     let mut data = vec![];
    
-    let mut num_floats = read_num_floats(&mut inpf);
+    let num_floats = read_num_floats(&mut inpf);
     
     // Iterator over the floats in file and create a local
     // array
     for iterator_floats in 0..num_floats
     {
-       let mut data_item = read_item(&mut inpf,iterator_floats);
-       if((data_item >= lower_limit) && (data_item < upper_limit))
+       let data_item = read_item(&mut inpf,iterator_floats);
+       if (data_item >= lower_limit) && (data_item < upper_limit)
        {
           data.push(data_item);     
        }
@@ -215,7 +214,7 @@ fn worker(tid: usize, inp_path: String, out_path: String, pivots: Vec<f32>,
     let mut cur = Cursor::new(vec![]);
 
     for xx in &data {
-        let tmp = xx.to_ne_bytes();
+        let tmp = xx.to_bits().to_ne_bytes();
         cur.write_all(&tmp).unwrap();
     }
 
@@ -225,7 +224,7 @@ fn worker(tid: usize, inp_path: String, out_path: String, pivots: Vec<f32>,
 
     {
       // curly braces to scope our lock guard
-      let mut sizes_ref = sizes.lock().unwrap();
+      let sizes_ref = sizes.lock().unwrap();
  
       for tid_iter in 0..tid
       {
