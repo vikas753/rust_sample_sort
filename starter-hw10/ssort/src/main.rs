@@ -40,15 +40,23 @@ fn main() {
     let sizes = Arc::new(Mutex::new(vec![0u64; threads]));
     let barrier = Arc::new(Barrier::new(threads));
 
+    let mut buffer = vec![0f32; num_floats as usize];
+    // read the whole file into buffer 
+	for iter_float in 0..num_floats
+	{
+	  buffer[iter_float as usize] = read_item(&mut inpf,iter_float);
+	}
+	
     for ii in 0..threads {
         let inp = inp_path.clone();
         let out = out_path.clone();
         let piv = pivots.clone();
         let szs = sizes.clone();
         let bar = barrier.clone();
-
+        let buf = buffer.clone();
+		
         let tt = thread::spawn(move || {
-            worker(ii, inp, out, piv, szs, bar);
+            worker(ii, inp, out, piv, szs, bar, buf);
         });
         workers.push(tt);
     }
@@ -113,7 +121,7 @@ fn sample(file: &mut File, count: usize, size: u64) -> Vec<f32> {
       let value_rnd_index = read_item(file,random_index); 
       ys.push(value_rnd_index);
       size_iterator = size_iterator + factor_range;
-      if size_iterator == upper_bound 
+      if size_iterator == upper_bound
       {
         done = true;    
       }
@@ -131,7 +139,7 @@ fn find_pivots(file: &mut File, threads: usize) -> Vec<f32> {
 
     // For threads = 1 , the pivot should be 0.0 as a lower limit
     // so that it can be handled later in worker code
-    if count_samples == 0
+    if count_samples == 0 
     {
       // do nothing
     }
@@ -156,7 +164,7 @@ fn find_pivots(file: &mut File, threads: usize) -> Vec<f32> {
         let median = sum / 3.0;
         pivots.push(median);
         samples_iterator = samples_iterator + 3;
-        if samples_iterator == upper_bound 
+        if samples_iterator == upper_bound
         {
           done = true;
         }
@@ -167,7 +175,8 @@ fn find_pivots(file: &mut File, threads: usize) -> Vec<f32> {
 }
 
 fn worker(tid: usize, inp_path: String, out_path: String, pivots: Vec<f32>,
-          sizes: Arc<Mutex<Vec<u64>>>, bb: Arc<Barrier>) {
+          sizes: Arc<Mutex<Vec<u64>>>, bb: Arc<Barrier>, buffer: Vec<f32>) 
+{
 
     // Open input as local fh
     let mut inpf = File::open(inp_path).unwrap();
@@ -180,17 +189,17 @@ fn worker(tid: usize, inp_path: String, out_path: String, pivots: Vec<f32>,
     {
       upper_limit = pivots[tid+1];    
     }
-
+	
     // Scan to collect local data
     let mut data = vec![];
    
     let num_floats = read_num_floats(&mut inpf);
-    
+ 	
     // Iterator over the floats in file and create a local
     // array
     for iterator_floats in 0..num_floats
-    {
-       let data_item = read_item(&mut inpf,iterator_floats);
+    {	   
+	   let data_item = buffer[iterator_floats as usize];
        if (data_item >= lower_limit) && (data_item < upper_limit)
        {
           data.push(data_item);     
@@ -214,7 +223,7 @@ fn worker(tid: usize, inp_path: String, out_path: String, pivots: Vec<f32>,
     let mut cur = Cursor::new(vec![]);
 
     for xx in &data {
-        let tmp = xx.to_bits().to_ne_bytes();
+        let tmp = xx.to_ne_bytes();
         cur.write_all(&tmp).unwrap();
     }
 
