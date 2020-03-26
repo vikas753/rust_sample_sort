@@ -51,10 +51,10 @@ ____________________ ___________________________________________________________
 
 As we can see from above table that ideal speedup has a very large deviation from that of
 a parallel speedup . The biggest reason would be that ideal speedup doesnt consider time 
-taken to create a thread or a process and it assumes that every process or thread has an 
+taken to create a thread or a process and it assumes that every thread has an 
 equal contribution . 
 With the sample sort algorithm , since the samples are chosen randomly and then sorted 
-thus we can never guarantee that every process will be devoted same work to be done . It can 
+thus we can never guarantee that every thread will be devoted same work to be done . It can 
 happen that one amongst the process got 80% of samples which could ruin the parallelism 
 of the algorithm thereby approximating it to be sequential . 
 Slightly out of topic , but if the processes face a contention of resource , then it would 
@@ -70,10 +70,32 @@ server with a good speed of working and a linear descent as compared to local ma
 there is a shortage of cores for which increasing number of processes would eventually lead to
 contention of resources on local machine thereby leading consuming some "real" time . 
 
-As per the graphs , with increase of processes , time taken for them shows a linear decline
+As per the graphs , with increase of threads , time taken for them shows a linear decline
 while the threads performance become almost constant with a gentle decline . As per my views
 it should be context switches in the threads ( when number of threads increases , with below 
 HW resources being constant ) , it can lead to contention of resources thereby leading to 
 multiple context switches which take a lot of time thereby contributing being an additive
-time consuming factor . I have discussed it further in Threads vs Processes section below . 
+time consuming factor .  
 
+
+-- Rust vs C --
+
+Pros of Rust - Cons of C : 
+1 . Complexity of code reduces as a lot of redundancy is reduced . 
+    For example : For atomic behavior we can do away with tedious initialise
+	, lock , unlock and destroy a mutex process , it gets done in a single 
+	step . 
+2 . Ease of debugging , with unwrap() feature helps in ease to panic at unexpected
+    behavior . Display functions like "pretty print" , helps in quick view of large datasets
+	like vectors in a single line of code . 
+3 . A lot of concurrency issues are reduced , owing to mutable or immutable features of
+    data . Restricting users by "move" feature before putting the data in shared region
+	of memory.	
+	
+Pros of C - Cons of Rust : 
+1 . More control of memory fragmentation , since we have pointers and very basic features like
+    typecasts . 
+2 . Code written in C is faster with many compiler optimizations that can make runtime faster 
+    compared to programs written in Rust .
+3 . Opportunity to inline an assembly code or functions in C , which does a very good job
+    of speeding up an application removing crucial bottlenecks . 	
